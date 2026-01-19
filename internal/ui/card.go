@@ -60,11 +60,14 @@ func (c *PromptCard) build() {
 	})
 	starBtn.Importance = widget.LowImportance
 
-	title := widget.NewLabel(c.prompt.Title)
-	title.TextStyle = fyne.TextStyle{Bold: true}
-	title.Truncation = fyne.TextTruncateEllipsis
+	// Title button - clicking copies to clipboard
+	titleBtn := widget.NewButton(c.prompt.Title, func() {
+		c.copyToClipboard()
+	})
+	titleBtn.Importance = widget.LowImportance
+	titleBtn.Alignment = widget.ButtonAlignLeading
 
-	titleRow := container.NewBorder(nil, nil, starBtn, nil, title)
+	titleRow := container.NewBorder(nil, nil, starBtn, nil, titleBtn)
 
 	// Input field if needed
 	var inputContainer fyne.CanvasObject
@@ -82,24 +85,16 @@ func (c *PromptCard) build() {
 		inputContainer = c.inputEntry
 	}
 
-	// Copy button
-	copyBtn := widget.NewButton("Copy", func() {
-		c.copyToClipboard()
-	})
-	copyBtn.Importance = widget.HighImportance
-
 	// Build layout
 	var content *fyne.Container
 	if inputContainer != nil {
 		content = container.NewVBox(
 			titleRow,
 			inputContainer,
-			container.NewCenter(copyBtn),
 		)
 	} else {
 		content = container.NewVBox(
 			titleRow,
-			container.NewCenter(copyBtn),
 		)
 	}
 
@@ -290,22 +285,26 @@ func (li *PromptListItem) build() {
 	})
 	starBtn.Importance = widget.LowImportance
 
-	title := widget.NewLabel(li.prompt.Title)
-	title.TextStyle = fyne.TextStyle{Bold: true}
+	// Title button - clicking copies to clipboard
+	titleBtn := widget.NewButton(li.prompt.Title, func() {
+		li.app.CopyPrompt(li.prompt, "")
+	})
+	titleBtn.Importance = widget.LowImportance
+	titleBtn.Alignment = widget.ButtonAlignLeading
 
+	// Description
+	desc := widget.NewLabel(li.prompt.Description)
+	desc.Truncation = fyne.TextTruncateEllipsis
+
+	// Group label on the right
 	group := widget.NewLabel(li.prompt.Group)
 	group.Importance = widget.LowImportance
 
-	copyBtn := widget.NewButton("Copy", func() {
-		li.app.CopyPrompt(li.prompt, "")
-	})
-	copyBtn.Importance = widget.HighImportance
-
 	li.container = container.NewBorder(
 		nil, nil,
-		container.NewHBox(starBtn, title),
-		container.NewHBox(group, copyBtn),
-		nil,
+		container.NewHBox(starBtn, titleBtn),
+		group,
+		desc,
 	)
 }
 
