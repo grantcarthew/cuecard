@@ -95,7 +95,7 @@ func (mv *MainView) rebuildCards() {
 
 	// Add favorites section
 	if len(favorites) > 0 {
-		header := NewGroupHeader("Favorites", -1, true)
+		header := NewGroupHeader("Favorites", true)
 		mv.cardsContent.Add(header)
 
 		cardsContainer := mv.createCardsContainer(favorites)
@@ -104,8 +104,8 @@ func (mv *MainView) rebuildCards() {
 
 	// Add groups
 	groupNames := prompt.SortedGroupNames(groups)
-	for i, name := range groupNames {
-		header := NewGroupHeader(name, i%8, false)
+	for _, name := range groupNames {
+		header := NewGroupHeader(name, false)
 		mv.cardsContent.Add(header)
 
 		cardsContainer := mv.createCardsContainer(groups[name])

@@ -103,10 +103,24 @@ func (c *PromptCard) build() {
 		)
 	}
 
-	// Card background
-	bg := canvas.NewRectangle(color.RGBA{245, 245, 245, 255})
+	// Card background - use group color if available
+	var bgColor color.Color
+	if c.prompt.Favorite {
+		bgColor = color.RGBA{255, 248, 220, 255} // Light gold for favorites
+	} else if c.prompt.Group != "" {
+		colorIndex := prompt.ColorIndexForGroup(c.prompt.Group)
+		if colorIndex >= 0 && colorIndex < len(groupColors) {
+			bgColor = groupColors[colorIndex]
+		} else {
+			bgColor = color.RGBA{245, 245, 245, 255}
+		}
+	} else {
+		bgColor = color.RGBA{250, 250, 250, 255} // Slightly off-white for ungrouped
+	}
+
+	bg := canvas.NewRectangle(bgColor)
 	bg.CornerRadius = 8
-	bg.StrokeColor = color.RGBA{220, 220, 220, 255}
+	bg.StrokeColor = color.RGBA{180, 180, 180, 255}
 	bg.StrokeWidth = 1
 
 	c.container = container.NewStack(bg, container.NewPadded(content))
@@ -222,17 +236,20 @@ func (c *PromptCard) reveal() {
 }
 
 // NewGroupHeader creates a group header
-func NewGroupHeader(name string, colorIndex int, isFavorites bool) fyne.CanvasObject {
+func NewGroupHeader(name string, isFavorites bool) fyne.CanvasObject {
 	label := widget.NewLabel(name)
 	label.TextStyle = fyne.TextStyle{Bold: true}
 
 	var bgColor color.Color
 	if isFavorites {
 		bgColor = color.RGBA{255, 248, 220, 255} // Light gold for favorites
-	} else if colorIndex >= 0 && colorIndex < len(groupColors) {
-		bgColor = groupColors[colorIndex]
 	} else {
-		bgColor = color.RGBA{240, 240, 240, 255}
+		colorIndex := prompt.ColorIndexForGroup(name)
+		if colorIndex >= 0 && colorIndex < len(groupColors) {
+			bgColor = groupColors[colorIndex]
+		} else {
+			bgColor = color.RGBA{240, 240, 240, 255}
+		}
 	}
 
 	bg := canvas.NewRectangle(bgColor)
