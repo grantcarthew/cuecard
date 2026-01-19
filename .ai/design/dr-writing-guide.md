@@ -26,7 +26,7 @@ DR structure:
 ### Header
 
 ```markdown
-# DR-NNN: Title
+# dr-nnn: Title
 
 - Date: YYYY-MM-DD
 - Status: Accepted | Superseded

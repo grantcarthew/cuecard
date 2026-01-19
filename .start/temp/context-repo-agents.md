@@ -10,7 +10,7 @@ Design phase.
 
 Projects are stored in the .ai/projects/ directory. Update this when starting a new project.
 
-Active Project: .ai/projects/p-002-initial-implementation.md
+Active Project: .ai/projects/p-002-initial-release.md
 
 ## Quick Reference
 

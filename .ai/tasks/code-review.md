@@ -79,7 +79,7 @@ Does the code fit well into the larger system?
 Design Records Alignment:
 
 - Does implementation match architectural decisions in DRs?
-- Are DR-documented trade-offs respected?
+- Are dr-documented trade-offs respected?
 - Are design patterns from DRs followed consistently?
 
 Simplicity:
