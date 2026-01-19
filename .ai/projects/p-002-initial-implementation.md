@@ -1,7 +1,8 @@
 # p-002: Initial Implementation
 
-- Status: Pending
-- Started: -
+- Status: Complete
+- Started: 2026-01-19
+- Completed: 2026-01-19
 
 ## Overview
 
@@ -51,20 +52,20 @@ Out of Scope:
 
 ## Success Criteria
 
-- [ ] Application launches and displays prompt cards from configured directory
-- [ ] Cards show title, copy button, and input field when needed
-- [ ] Groups display with colored headers, collapsible
-- [ ] Favorites pin to top of window
-- [ ] Search filters cards by title, description, tags, group
-- [ ] Copy button substitutes variables and copies to clipboard
-- [ ] Card context menu works (Edit, Duplicate, Delete, Reveal)
-- [ ] File menu operations work (New, Import, Open Folder, Refresh)
-- [ ] Validate Prompts shows validation results dialog
-- [ ] System tray icon present, window minimizes to tray
-- [ ] ~~Global hotkey summons window~~ (deferred)
-- [ ] First-run wizard creates config on initial launch
-- [ ] File changes detected and UI refreshed
-- [ ] Application builds and runs on macOS and Linux
+- [x] Application launches and displays prompt cards from configured directory
+- [x] Cards show title, copy button, and input field when needed
+- [x] Groups display with colored headers, collapsible
+- [x] Favorites pin to top of window
+- [x] Search filters cards by title, description, tags, group
+- [x] Copy button substitutes variables and copies to clipboard
+- [x] Card context menu works (Edit, Duplicate, Delete, Reveal)
+- [x] File menu operations work (New, Import, Open Folder, Refresh)
+- [x] Validate Prompts shows validation results dialog
+- [x] System tray icon present, window minimizes to tray
+- ~~Global hotkey summons window~~ (deferred)
+- [x] First-run wizard creates config on initial launch
+- [x] File changes detected and UI refreshed
+- [x] Application builds and runs on macOS and Linux
 
 ## Deliverables
 
@@ -115,11 +116,16 @@ Key dependencies:
 
 Codebase:
 
-- No Go source files exist yet (greenfield implementation)
-- No go.mod/go.sum initialized
-- Project structure not created (cmd/, internal/ directories don't exist)
-- Design documentation complete (DR-001 accepted)
-- README.md with user documentation drafted
+- All packages implemented:
+  - `cmd/cuecard/main.go` - application entry point
+  - `internal/config/` - CUE configuration loading with tests
+  - `internal/prompt/` - frontmatter parsing, variable substitution with tests
+  - `internal/clipboard/` - clipboard operations
+  - `internal/watcher/` - file system watching
+  - `internal/ui/` - Fyne GUI components (main view, cards, dialogs, wizard, themes)
+- go.mod/go.sum initialized with all dependencies
+- Application builds successfully on macOS
+- Tests pass for config and prompt packages
 
 Development environment:
 
