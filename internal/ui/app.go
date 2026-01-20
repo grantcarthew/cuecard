@@ -45,12 +45,23 @@ func (a *App) Run() error {
 	a.window.CenterOnScreen()
 
 	// Check if config exists
-	exists, err := config.Exists()
+	configExists, err := config.Exists()
 	if err != nil {
 		return fmt.Errorf("failed to check config: %w", err)
 	}
 
-	if !exists {
+	// Check if prompts directory exists (if config exists)
+	promptsDirExists := false
+	if configExists {
+		cfg, err := config.Load()
+		if err == nil {
+			if _, err := os.Stat(cfg.PromptsDir); err == nil {
+				promptsDirExists = true
+			}
+		}
+	}
+
+	if !configExists || !promptsDirExists {
 		// Show first-run wizard in main window
 		wizard := NewWizard(a.window, func() {
 			// Wizard complete - load main UI

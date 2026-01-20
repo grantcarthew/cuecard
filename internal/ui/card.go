@@ -133,7 +133,11 @@ func (c *PromptCard) toggleFavorite() {
 
 func (c *PromptCard) copyToClipboard() {
 	if c.prompt.RequiresInput() && c.inputEntry != nil && c.inputEntry.Text == "" {
-		// Show error or highlight field
+		// Focus the entry to show validation error
+		canvas := fyne.CurrentApp().Driver().CanvasForObject(c.inputEntry)
+		if canvas != nil {
+			canvas.Focus(c.inputEntry)
+		}
 		c.inputEntry.Validate()
 		return
 	}
@@ -175,7 +179,9 @@ func (c *PromptCard) showContextMenu(e *fyne.PointEvent) {
 			c.showPreview()
 		}),
 		fyne.NewMenuItem("Edit", func() {
-			c.app.OpenInEditor(c.prompt.FilePath)
+			ShowEditPromptDialog(c.app.window, c.prompt, func() {
+				c.app.refresh()
+			})
 		}),
 		fyne.NewMenuItem("Duplicate", func() {
 			c.duplicate()

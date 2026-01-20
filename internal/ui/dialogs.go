@@ -15,6 +15,112 @@ import (
 	"github.com/grantcarthew/cuecard/internal/prompt"
 )
 
+// ShowEditPromptDialog shows the edit prompt dialog with pre-populated values
+func ShowEditPromptDialog(window fyne.Window, p *prompt.Prompt, onSaved func()) {
+	titleEntry := widget.NewEntry()
+	titleEntry.SetText(p.Title)
+
+	descEntry := widget.NewEntry()
+	descEntry.SetText(p.Description)
+
+	groupEntry := widget.NewEntry()
+	groupEntry.SetText(p.Group)
+
+	tagsEntry := widget.NewEntry()
+	tagsEntry.SetText(strings.Join(p.Tags, ", "))
+
+	inputSelect := widget.NewSelect([]string{"None", "Optional", "Required"}, nil)
+	switch p.Input {
+	case "optional":
+		inputSelect.SetSelected("Optional")
+	case "required":
+		inputSelect.SetSelected("Required")
+	default:
+		inputSelect.SetSelected("None")
+	}
+
+	inputHintEntry := widget.NewEntry()
+	inputHintEntry.SetText(p.InputHint)
+
+	contentEntry := widget.NewMultiLineEntry()
+	contentEntry.SetText(p.Content)
+	contentEntry.Wrapping = fyne.TextWrapWord
+
+	// Build frontmatter form (fixed size at top)
+	frontmatterForm := widget.NewForm(
+		widget.NewFormItem("Title", titleEntry),
+		widget.NewFormItem("Description", descEntry),
+		widget.NewFormItem("Group", groupEntry),
+		widget.NewFormItem("Tags", tagsEntry),
+		widget.NewFormItem("Input", inputSelect),
+		widget.NewFormItem("Input Hint", inputHintEntry),
+	)
+
+	// Content label
+	contentLabel := widget.NewLabel("Content")
+	contentLabel.TextStyle = fyne.TextStyle{Bold: true}
+
+	// Layout: frontmatter at top, content expands to fill rest
+	content := container.NewBorder(
+		container.NewVBox(frontmatterForm, contentLabel),
+		nil, nil, nil,
+		contentEntry,
+	)
+
+	// Get window size for dialog
+	windowSize := window.Canvas().Size()
+
+	saveFunc := func() {
+		// Parse tags
+		var tags []string
+		if tagsEntry.Text != "" {
+			for _, t := range strings.Split(tagsEntry.Text, ",") {
+				t = strings.TrimSpace(t)
+				if t != "" {
+					tags = append(tags, t)
+				}
+			}
+		}
+
+		// Determine input value
+		inputValue := ""
+		switch inputSelect.Selected {
+		case "Optional":
+			inputValue = "optional"
+		case "Required":
+			inputValue = "required"
+		}
+
+		// Update the prompt
+		p.Title = titleEntry.Text
+		p.Description = descEntry.Text
+		p.Group = groupEntry.Text
+		p.Tags = tags
+		p.Input = inputValue
+		p.InputHint = inputHintEntry.Text
+		p.Content = contentEntry.Text
+
+		// Write to existing file
+		markdown := p.ToMarkdown()
+		if err := os.WriteFile(p.FilePath, []byte(markdown), 0644); err != nil {
+			dialog.ShowError(err, window)
+			return
+		}
+
+		if onSaved != nil {
+			onSaved()
+		}
+	}
+
+	d := dialog.NewCustomConfirm("Edit Prompt", "Save", "Cancel", content, func(save bool) {
+		if save {
+			saveFunc()
+		}
+	}, window)
+	d.Resize(fyne.NewSize(windowSize.Width-40, windowSize.Height-40))
+	d.Show()
+}
+
 // ShowNewPromptDialog shows the new prompt creation dialog
 func ShowNewPromptDialog(window fyne.Window, promptsDir string, onCreated func()) {
 	titleEntry := widget.NewEntry()
@@ -37,66 +143,79 @@ func ShowNewPromptDialog(window fyne.Window, promptsDir string, onCreated func()
 
 	contentEntry := widget.NewMultiLineEntry()
 	contentEntry.SetPlaceHolder("Prompt content...\n\nUse ${INPUT} for user input, ${DATE}, ${DATETIME}, ${CLIPBOARD}, ${FILE}")
-	contentEntry.SetMinRowsVisible(8)
+	contentEntry.Wrapping = fyne.TextWrapWord
 
-	form := &widget.Form{
-		Items: []*widget.FormItem{
-			{Text: "Title", Widget: titleEntry},
-			{Text: "Description", Widget: descEntry},
-			{Text: "Group", Widget: groupEntry},
-			{Text: "Tags", Widget: tagsEntry},
-			{Text: "Input", Widget: inputSelect},
-			{Text: "Input Hint", Widget: inputHintEntry},
-			{Text: "Content", Widget: contentEntry},
-		},
-		OnSubmit: func() {
-			// Parse tags
-			var tags []string
-			if tagsEntry.Text != "" {
-				for _, t := range strings.Split(tagsEntry.Text, ",") {
-					t = strings.TrimSpace(t)
-					if t != "" {
-						tags = append(tags, t)
-					}
+	// Build frontmatter form (fixed size at top)
+	frontmatterForm := widget.NewForm(
+		widget.NewFormItem("Title", titleEntry),
+		widget.NewFormItem("Description", descEntry),
+		widget.NewFormItem("Group", groupEntry),
+		widget.NewFormItem("Tags", tagsEntry),
+		widget.NewFormItem("Input", inputSelect),
+		widget.NewFormItem("Input Hint", inputHintEntry),
+	)
+
+	// Content label
+	contentLabel := widget.NewLabel("Content")
+	contentLabel.TextStyle = fyne.TextStyle{Bold: true}
+
+	// Layout: frontmatter at top, content expands to fill rest
+	content := container.NewBorder(
+		container.NewVBox(frontmatterForm, contentLabel),
+		nil, nil, nil,
+		contentEntry,
+	)
+
+	// Get window size for dialog
+	windowSize := window.Canvas().Size()
+
+	createFunc := func() {
+		// Parse tags
+		var tags []string
+		if tagsEntry.Text != "" {
+			for _, t := range strings.Split(tagsEntry.Text, ",") {
+				t = strings.TrimSpace(t)
+				if t != "" {
+					tags = append(tags, t)
 				}
 			}
+		}
 
-			// Determine input value
-			inputValue := ""
-			switch inputSelect.Selected {
-			case "Optional":
-				inputValue = "optional"
-			case "Required":
-				inputValue = "required"
-			}
+		// Determine input value
+		inputValue := ""
+		switch inputSelect.Selected {
+		case "Optional":
+			inputValue = "optional"
+		case "Required":
+			inputValue = "required"
+		}
 
-			p := &prompt.Prompt{
-				Title:       titleEntry.Text,
-				Description: descEntry.Text,
-				Group:       groupEntry.Text,
-				Tags:        tags,
-				Input:       inputValue,
-				InputHint:   inputHintEntry.Text,
-				Content:     contentEntry.Text,
-			}
+		p := &prompt.Prompt{
+			Title:       titleEntry.Text,
+			Description: descEntry.Text,
+			Group:       groupEntry.Text,
+			Tags:        tags,
+			Input:       inputValue,
+			InputHint:   inputHintEntry.Text,
+			Content:     contentEntry.Text,
+		}
 
-			if _, err := prompt.CreatePromptFile(promptsDir, p); err != nil {
-				dialog.ShowError(err, window)
-				return
-			}
+		if _, err := prompt.CreatePromptFile(promptsDir, p); err != nil {
+			dialog.ShowError(err, window)
+			return
+		}
 
-			if onCreated != nil {
-				onCreated()
-			}
-		},
+		if onCreated != nil {
+			onCreated()
+		}
 	}
 
-	d := dialog.NewForm("New Prompt", "Create", "Cancel", form.Items, func(submitted bool) {
-		if submitted {
-			form.OnSubmit()
+	d := dialog.NewCustomConfirm("New Prompt", "Create", "Cancel", content, func(create bool) {
+		if create {
+			createFunc()
 		}
 	}, window)
-	d.Resize(fyne.NewSize(600, 500))
+	d.Resize(fyne.NewSize(windowSize.Width-40, windowSize.Height-40))
 	d.Show()
 }
 

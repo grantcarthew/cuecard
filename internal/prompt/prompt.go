@@ -450,10 +450,13 @@ func ColorIndexForGroup(group string) int {
 		return -1
 	}
 
-	// Simple hash function
-	var hash uint32
+	// FNV-1a hash for better distribution
+	const fnvPrime = 16777619
+	const fnvOffset = 2166136261
+	var hash uint32 = fnvOffset
 	for _, c := range group {
-		hash = hash*31 + uint32(c)
+		hash ^= uint32(c)
+		hash *= fnvPrime
 	}
 
 	// Return index 0-7 for 8 pastel colors
