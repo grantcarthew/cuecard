@@ -76,7 +76,7 @@ env/
 # Go
 *.test
 *.out
-cuecard
+/cuecard
 
 # Rust
 Cargo.lock
